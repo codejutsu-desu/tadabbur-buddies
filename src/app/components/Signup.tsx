@@ -1,12 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { fetchCountries } from "./SelectCountry";
 import {
   Form,
   FormControl,
@@ -24,10 +24,11 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
+import Image from "next/image";
 
 const formSchema = z.object({
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+  name: z.string().min(2, {
+    message: "name must be at least 2 characters.",
   }),
   password: z.string().min(6, {
     message: "Password should be minimum 6 characters.",
@@ -36,47 +37,45 @@ const formSchema = z.object({
   location: z.string(),
 });
 
+interface Country {
+  name: {
+    common: string;
+  };
+  flags: {
+    png: string;
+  };
+}
+
 export default function Signup() {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [countries, setCountries] = useState([]);
+  const [countries, setCountries] = useState<Country[]>([]);
   const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-      email: "",
-      location: "",
-    },
   });
 
   useEffect(() => {
-    async function fetchCountries() {
+    async function fetchCountriesData() {
       try {
-        const response = await fetch("https://restcountries.com/v3.1/all");
-        if (response.ok) {
-          const data = await response.json();
-          setCountries(data.map((country) => country.name.common));
-        } else {
-          throw new Error("Failed to fetch countries");
-        }
+        const data = await fetchCountries();
+        setCountries(data.map((country) => country));
       } catch (error) {
         console.error("Failed to fetch countries:", error);
       }
     }
-    fetchCountries();
+    fetchCountriesData();
   }, []);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     const requestData = {
-      username: values.username,
+      name: values.name,
       password: values.password,
       email: values.email,
       location: values.location,
     };
+    console.log(requestData);
 
     try {
       const response = await fetch("/api/sign-up", {
@@ -88,7 +87,7 @@ export default function Signup() {
       });
 
       if (response.ok) {
-        router.push("/dashboard");
+        // router.push("/dashboard");
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to sign up");
@@ -105,12 +104,12 @@ export default function Signup() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="username"
+          name="name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input placeholder="Username" {...field} />
+                <Input type="name" placeholder="Username" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -123,19 +122,8 @@ export default function Signup() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="Email" {...field} />
+                <Input type="email" placeholder="Email" {...field} />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="location"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Location</FormLabel>
-              <FormControl></FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -170,4 +158,15 @@ export default function Signup() {
       </form>
     </Form>
   );
+}
+
+{
+  /* <div className="inline-flex">
+                        <Image
+                          alt="country"
+                          src={country.flags.png}
+                          width={16}
+                          height={16}
+                        />
+                      </div> */
 }

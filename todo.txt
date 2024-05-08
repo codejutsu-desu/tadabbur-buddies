@@ -1,0 +1,4 @@
+1/ readmore page  (done)
+2/ hashpassword
+3/ login function 
+4/ Authentication

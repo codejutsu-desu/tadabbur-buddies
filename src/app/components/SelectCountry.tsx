@@ -1,60 +1,14 @@
-import {
-  getJson,
-  MbscSelectData,
-  MbscSelectItemData,
-  Select,
-  setOptions,
-} from "@mobiscroll/react";
-import { FC, useCallback, useEffect, useState } from "react";
-
-setOptions({
-  theme: "ios",
-  themeVariant: "light",
-});
-
-const App: FC = () => {
-  const [myData, setMyData] = useState<(string | number | MbscSelectData)[]>(
-    []
-  );
-
-  const renderCustomItem = useCallback(
-    (item: MbscSelectItemData) => (
-      <div className="md-country-picker-item">
-        <img
-          className="md-country-picker-flag"
-          src={
-            "https://img.mobiscroll.com/demos/flags/" + item.data.value + ".png"
-          }
-          alt="Flag"
-        />
-        {item.display}
-      </div>
-    ),
-    []
-  );
-
-  useEffect(() => {
-    getJson("https://trial.mobiscroll.com/content/countries.json", (resp) => {
-      setMyData(
-        resp.map((country: { text: string; value: string }) => ({
-          text: country.text,
-          value: country.value,
-        }))
-      );
-    });
-  }, []);
-
-  return (
-    <Select
-      data={myData}
-      display="anchored"
-      inputStyle="outline"
-      itemHeight={40}
-      label="Countries"
-      labelStyle="stacked"
-      placeholder="Please select..."
-      renderItem={renderCustomItem}
-    />
-  );
-};
-export default App;
+"use server";
+export async function fetchCountries() {
+  try {
+    const response = await fetch("https://restcountries.com/v3.1/all");
+    if (response.ok) {
+      const countries = await response.json();
+      return countries;
+    } else {
+      throw new Error("Failed to fetch countries");
+    }
+  } catch (error) {
+    console.error("Failed to fetch countries:", error);
+  }
+}

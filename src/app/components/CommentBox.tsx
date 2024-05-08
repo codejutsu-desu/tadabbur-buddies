@@ -104,7 +104,7 @@ export default function CommentBox({ reflection }: Props) {
           </div>
           {showReadMore && (
             <a
-              href={`/comment/${reflection.id}`}
+              href={`dashboard/${reflection.id}`}
               className="text-blue-500 flex justify-end underline hover:underline"
             >
               Read More
